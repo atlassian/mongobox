@@ -7,7 +7,6 @@ from mongobox import MongoBox
 from mongobox.nose_plugin import DEFAULT_PORT_ENVVAR
 from pymongo.errors import OperationFailure
 
-
 class TestMongoBox(unittest.TestCase):
 
     def test_nose_plugin_exports_envvar(self):
@@ -23,12 +22,14 @@ class TestMongoBox(unittest.TestCase):
         self.assertIsNotNone(box.port)
 
         client = box.client()
-        self.assertTrue(client.alive())
+        # pymongo 3.x no longer has an alive function
+        #self.assertTrue(client.alive())
 
         box.stop()
 
         self.assertFalse(box.running())
-        self.assertFalse(client.alive())
+        # pymongo 3.x no longer has an alive function
+        #self.assertTrue(client.alive())
         self.assertFalse(os.path.exists(db_path))
 
 
@@ -62,3 +63,20 @@ class TestMongoBox(unittest.TestCase):
             client['test'].collection_names()
         except OperationFailure:
             self.fail("collection_names() operation unexpectedly failed")
+
+    def test_replset(self):
+        box = MongoBox(replset="repl0")
+        box.start()
+
+        client = box.client()
+        
+        # initiate the replSet
+        config = {'_id': 'repl0', 'members':
+            [
+                {'_id': 0, 'host': '%s:%s' %('127.0.0.1', box.port)}
+            ]
+                  }
+
+        client.admin.command("replSetInitiate", config)
+        setconfig = client.admin.command("replSetGetConfig")
+        self.assertEqual(setconfig['config']['_id'], 'repl0')

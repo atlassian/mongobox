@@ -32,7 +32,7 @@ START_CHECK_ATTEMPTS = 200
 class MongoBox(object):
     def __init__(self, mongod_bin=None, port=None,
                  log_path=None, db_path=None, scripting=False,
-                 prealloc=False, auth=False):
+                 prealloc=False, auth=False, replset=None):
 
         self.mongod_bin = mongod_bin or find_executable(MONGOD_BIN)
         assert self.mongod_bin, 'Could not find "{}" in system PATH. Make sure you have MongoDB installed.'.format(MONGOD_BIN)
@@ -43,6 +43,7 @@ class MongoBox(object):
         self.prealloc = prealloc
         self.db_path = db_path
         self.auth = auth
+        self.replset = replset
 
         if self.db_path:
             if os.path.exists(self.db_path) and os.path.isfile(self.db_path):
@@ -71,6 +72,9 @@ class MongoBox(object):
         args.extend(['--port', str(self.port)])
         args.extend(['--logpath', self.log_path])
 
+        if self.replset:
+            args.extend(['--replSet', self.replset])
+            
         if self.auth:
             args.append("--auth")
 

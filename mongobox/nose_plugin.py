@@ -65,6 +65,12 @@ class MongoBoxPlugin(Plugin):
             dest="auth",
             default=False,
             help="Enable mongodb's user authentication mechanisms.")
+        parser.add_option(
+            "--mongobox-replset",
+            action="store",
+            dest="replset",
+            default=None,
+            help="Start mongodb with --replSet using the value passed in here")
 
     def configure(self, options, conf):
         super(MongoBoxPlugin, self).configure(options, conf)
@@ -75,7 +81,8 @@ class MongoBoxPlugin(Plugin):
         self.mongobox = MongoBox(
             mongod_bin=options.bin, port=options.port or None,
             log_path=options.logpath, db_path=options.dbpath,
-            scripting=options.scripting, prealloc=options.prealloc
+            scripting=options.scripting, prealloc=options.prealloc,
+            replset=options.replset
         )
 
         self.port_envvar = options.port_envvar
